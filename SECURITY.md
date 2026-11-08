@@ -9,8 +9,8 @@ Use **Security > Report a vulnerability** on this GitHub repo. It stays private.
 - **Small permissions.** Google `drive.file` only. No full-Drive access, ever.
 - **No user content on our side.** Only the encrypted sign-in grant (see README).
 - **Keys only in Cloudflare secrets.** Nothing secret is in this repo. GitHub secret scanning and push protection are on.
-- **`main` is protected.** No direct pushes, no force pushes, every change needs an approved pull request, and
-  outside pull requests are never auto-merged.
+- **`main` protection (being switched on, 2026-11-07).** The rule set is written: no direct pushes, no force pushes,
+  every change needs an approved pull request, outside pull requests never auto-merge. Until GitHub shows it on, treat `main` as unprotected.
 - **Fewest dependencies, exact versions** (no `^`), with Dependabot alerts on.
 - **Deploy only from `main`.** `npm run deploy` refuses anything that is not exactly `origin/main`.
 - **Daily check, no AI.** `npm run check:live` compares the live worker's code hash with the last reviewed deploy
