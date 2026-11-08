@@ -6,7 +6,7 @@ import { z } from "zod";
 import { SERVER_INSTRUCTIONS, VERSION } from "./brain";
 import { Drive, SignInError } from "./drive";
 import { GoogleHandler } from "./google-handler";
-import { addLine, dailyTidy, loadSavePoint, openProject, saveSavePoint, writeProject } from "./tools";
+import { addLine, dailyTidy, loadSavePoint, openProject, readFile, saveSavePoint, writeProject } from "./tools";
 import { refreshGoogle, type Props } from "./utils";
 
 const WHEN = z.string().describe('Their local date and time now, like "2026-11-07 1:05 PM"');
@@ -38,9 +38,9 @@ function createServer() {
 		"load_save_point",
 		{
 			title: "Load Save Point",
-			description: "Call FIRST in every chat, before answering. Returns the Damn Homie AI rules to follow plus the person's Save Point and My Rules from their Google Drive.",
+			description: "Returns the Damn Homie AI rules plus the person's Save Point and My Rules from their Google Drive.",
 			inputSchema: z.object({ today: TODAY }),
-			annotations: { readOnlyHint: true },
+			annotations: { readOnlyHint: true, destructiveHint: false, openWorldHint: false },
 		},
 		({ today }) => run((d) => loadSavePoint(d, today)),
 	);
@@ -49,11 +49,12 @@ function createServer() {
 		"save_save_point",
 		{
 			title: "Save",
-			description: "Save the full Save Point card to their Drive. The server merges it with what is there (newest stamp per item wins, nothing lost). Also use to merge a pasted card.",
+			description: "Save the full Save Point card to their Drive. The server merges it with what is there (newest stamp per item wins, nothing lost). Also merges a pasted card.",
 			inputSchema: z.object({
 				card: z.string().describe("The full card text, === DAMN HOMIE SAVE POINT === to === END ==="),
 				remove: z.array(z.string()).optional().describe("Item names to delete on purpose, only after they said yes"),
 			}),
+			annotations: { readOnlyHint: false, destructiveHint: true, openWorldHint: false },
 		},
 		({ card, remove }) => run(async (d) => `Saved to your Drive.\n\nSave Code (print it only if they ask, or if Drive fails later):\n${(await saveSavePoint(d, card, remove)).text}`),
 	);
@@ -62,8 +63,9 @@ function createServer() {
 		"add_rule",
 		{
 			title: "Add rule",
-			description: 'When they correct you or say how they like things. Saves it to My Rules. Then say "Got it, saved to My Rules."',
+			description: "Saves a correction or a stated preference to My Rules on their Drive.",
 			inputSchema: z.object({ rule: z.string(), when: WHEN }),
+			annotations: { readOnlyHint: false, destructiveHint: false, openWorldHint: false },
 		},
 		({ rule, when }) => run(async (d) => { await addLine(d, "MY RULES", rule, when); return "Saved to My Rules."; }),
 	);
@@ -74,6 +76,7 @@ function createServer() {
 			title: "Log decision",
 			description: "When they decide something. Adds one dated line to Decisions (newest on top).",
 			inputSchema: z.object({ decision: z.string(), when: WHEN }),
+			annotations: { readOnlyHint: false, destructiveHint: false, openWorldHint: false },
 		},
 		({ decision, when }) => run(async (d) => { await addLine(d, "DECISIONS", decision, when); return "Logged in Decisions."; }),
 	);
@@ -84,7 +87,7 @@ function createServer() {
 			title: "Open project",
 			description: 'Open a quest\'s project doc only when that quest comes up. depth "summary" first; "full" or "details" only if the question needs it.',
 			inputSchema: z.object({ name: z.string().describe("Quest name"), depth: z.enum(["summary", "full", "details"]).default("summary") }),
-			annotations: { readOnlyHint: true },
+			annotations: { readOnlyHint: true, destructiveHint: false, openWorldHint: false },
 		},
 		({ name, depth }) => run((d) => openProject(d, name, depth)),
 	);
@@ -93,7 +96,7 @@ function createServer() {
 		"write_project",
 		{
 			title: "Write project",
-			description: "Create or update a quest's project doc. Always give a 3-5 line summary (goal, where it stands, next step). Leave body out to keep the old body. details_add moves old detail into the details doc.",
+			description: "Create or update a quest's project doc. Needs a 3-5 line summary (goal, where it stands, next step). Leave body out to keep the old body. details_add moves old detail into the details doc.",
 			inputSchema: z.object({
 				name: z.string(),
 				summary: z.string(),
@@ -101,6 +104,7 @@ function createServer() {
 				details_add: z.string().optional(),
 				when: WHEN,
 			}),
+			annotations: { readOnlyHint: false, destructiveHint: false, openWorldHint: false },
 		},
 		({ name, summary, body, details_add, when }) => run((d) => writeProject(d, name, summary, body, details_add, when)),
 	);
@@ -109,10 +113,22 @@ function createServer() {
 		"daily_tidy",
 		{
 			title: "Daily tidy",
-			description: "First chat of a new day (load_save_point says Tidy due: yes). Moves finished quests to Done and old parked ideas to Someday, keeps lists short, archives old lines. Never deletes.",
+			description: "Daily housekeeping. Moves finished quests to Done and old parked ideas to Someday, keeps lists short, archives old lines. Never deletes.",
 			inputSchema: z.object({ today: TODAY }),
+			annotations: { readOnlyHint: false, destructiveHint: false, openWorldHint: false },
 		},
 		({ today }) => run((d) => dailyTidy(d, today)),
+	);
+
+	server.registerTool(
+		"read_file",
+		{
+			title: "Read picked file",
+			description: "Reads a Google Drive file the person picked at the /pick page (Docs, Sheets, Slides, text). Leave name out to list picked files. Cannot see anything they did not pick.",
+			inputSchema: z.object({ name: z.string().optional().describe("File name, or part of it") }),
+			annotations: { readOnlyHint: true, destructiveHint: false, openWorldHint: false },
+		},
+		({ name }) => run((d) => readFile(d, env.MCP_RESOURCE.replace(/\/mcp$/, "/pick"), name)),
 	);
 
 	return server;

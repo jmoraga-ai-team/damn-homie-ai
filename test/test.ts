@@ -2,7 +2,8 @@
 import { readFileSync } from "node:fs";
 import { merge, parse, print, tidy } from "../src/card";
 import { scrub } from "../src/secrets";
-import { addLine, dailyTidy, loadSavePoint, openProject, saveSavePoint, writeProject } from "../src/tools";
+import { Drive } from "../src/drive";
+import { addLine, dailyTidy, loadSavePoint, openProject, readFile, saveSavePoint, writeProject } from "../src/tools";
 
 let fails = 0;
 const ok = (cond: any, name: string) => {
@@ -22,6 +23,9 @@ class FakeDrive {
 	async find(name: string) { return this.files.get(name) || null; }
 	async read(id: string) { return [...this.files.values()].find((f) => f.id === id)!.text; }
 	async readByName(name: string) { const f = this.files.get(name); return f ? { doc: f, text: f.text } : null; }
+	pickedFiles: { id: string; name: string; mimeType: string; modifiedTime: string; text: string }[] = [];
+	async picked() { return this.pickedFiles; }
+	async readPicked(f: { id: string }) { return this.pickedFiles.find((x) => x.id === f.id)!.text; }
 	async write(name: string, text: string) {
 		await this.ensureFolder();
 		const old = this.files.get(name);
@@ -120,6 +124,38 @@ const V0_CARD = readFileSync(new URL("./v0-card.txt", import.meta.url), "utf8");
 	ok(!all.includes(fakeKey) && !all.includes("4111 1111") && !all.includes("hunter22"), "secret guard: key, card and password never written to Drive");
 	ok(r.scrubbed === 3 && !r.text.includes(fakeKey), "secret guard: counted (" + r.scrubbed + ") and gone from the returned card");
 	ok(scrub("call me at 808-555-1234, order 12345").hits === 0, "secret guard: phone and order numbers left alone");
+
+	// 9. read_file: only picked files.
+	const pd: any = new FakeDrive();
+	const PICK = "https://ai.damnhomie.com/pick";
+	ok((await readFile(pd, PICK)).includes(PICK), "read_file: no picked files -> points to the pick page");
+	pd.pickedFiles = [
+		{ id: "p1", name: "Budget 2026", mimeType: "application/vnd.google-apps.spreadsheet", modifiedTime: "", text: "rent,1200" },
+		{ id: "p2", name: "Notes.txt", mimeType: "text/plain", modifiedTime: "", text: "hello" },
+	];
+	ok((await readFile(pd, PICK)).includes("1. Budget 2026"), "read_file: no name -> lists picked files");
+	ok((await readFile(pd, PICK, "budget")).includes("rent,1200"), "read_file: partial name reads the file");
+	ok((await readFile(pd, PICK, "Tax return")).startsWith("No picked file"), "read_file: unpicked name -> says not picked");
+	pd.pickedFiles.push({ id: "p3", name: "Budget 2025", mimeType: "text/plain", modifiedTime: "", text: "old" });
+	ok((await readFile(pd, PICK, "budget")).startsWith("More than one picked file"), "read_file: two matches -> asks which, reads neither");
+	ok((await readFile(pd, PICK, "budget 2025")).includes("old"), "read_file: exact name wins");
+	{
+		const calls: string[] = [];
+		const fake = (async (u: string) => { calls.push(u); return new Response(JSON.stringify({ files: u.includes("name%3D'Damn") ? [{ id: "F1" }, { id: "F2" }] : [] })); }) as unknown as typeof fetch;
+		await new Drive("t", fake).picked();
+		ok(calls.length === 2 && calls[1].includes(encodeURIComponent("not 'F1' in parents")) && calls[1].includes(encodeURIComponent("not 'F2' in parents")), "picked(): skips every Damn Homie folder");
+		const big = new Drive("t", fake);
+		let msg = "";
+		try { await big.readPicked({ id: "x", name: "Huge.txt", mimeType: "text/plain", modifiedTime: "", size: "5000000" }); } catch (e) { msg = String(e); }
+		ok(msg.includes("too big"), "readPicked: over 2 MB refused");
+		msg = "";
+		try { await big.readPicked({ id: "x", name: "Plan.docx", mimeType: "application/vnd.openxmlformats-officedocument.wordprocessingml.document", modifiedTime: "" }); } catch (e) { msg = String(e); }
+		ok(msg.includes("can read Docs"), "readPicked: Office files are not read as text");
+		let pulled = 0;
+		const huge = (async () => new Response(new ReadableStream({ pull(c) { pulled += 65536; pulled > 5_000_000 ? c.close() : c.enqueue(new Uint8Array(65536).fill(97)); } }))) as unknown as typeof fetch;
+		const txt = await new Drive("t", huge).readPicked({ id: "s", name: "Big sheet", mimeType: "application/vnd.google-apps.spreadsheet", modifiedTime: "" });
+		ok(txt.length === 200000 && pulled < 1_000_000, "readPicked: big export stops at 200 KB, does not download it all");
+	}
 
 	console.log(fails ? `\n${fails} FAILED` : "\nALL PASS");
 	process.exit(fails ? 1 : 0);

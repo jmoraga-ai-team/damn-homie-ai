@@ -1,0 +1,27 @@
+:root{--bg:#120a1f;--card:#1e1233;--pink:#ff7ae6;--cyan:#5ff3ff;--mute:#d9cdf0}
+*{box-sizing:border-box}
+body{margin:0;background:radial-gradient(1200px 500px at 50% -10%,#3a1466 0,#120a1f 60%) fixed,var(--bg);color:#fff;font:20px/1.55 system-ui,-apple-system,"Segoe UI",sans-serif;-webkit-text-size-adjust:100%}
+header{display:flex;align-items:center;gap:12px;padding:14px 18px;border-bottom:2px solid #3b2368}
+header img{width:44px;height:44px;border-radius:10px}
+header b{font-size:22px;letter-spacing:.5px}
+nav{display:flex;flex-wrap:wrap;gap:8px;padding:12px 18px}
+nav a{padding:12px 16px;min-height:48px;border:2px solid var(--cyan);border-radius:12px;color:var(--cyan);text-decoration:none;font-weight:700}
+nav a[aria-current=page]{background:var(--cyan);color:#120a1f}
+main{padding:12px 18px 40px;max-width:720px;margin:0 auto}
+h1{font-size:38px;line-height:1.15;margin:18px 0 10px;color:var(--pink);text-shadow:0 0 18px #ff4fd855}
+h2{font-size:27px;margin:30px 0 8px;color:var(--cyan)}
+h3{font-size:22px;margin:0 0 6px}
+.mute{color:var(--mute)}
+a{color:var(--cyan)}
+a:focus-visible,button:focus-visible,input:focus-visible,textarea:focus-visible,select:focus-visible{outline:3px solid #fff;outline-offset:3px}
+.card{background:var(--card);border:2px solid #3b2368;border-radius:16px;padding:16px 18px;margin:16px 0}
+.btn{display:inline-block;min-height:52px;padding:14px 22px;margin:8px 8px 8px 0;border-radius:14px;background:var(--pink);color:#120a1f;font-weight:800;text-decoration:none;border:0;font-size:20px;font-family:inherit}
+.btn.alt{background:transparent;color:var(--cyan);border:2px solid var(--cyan)}
+code{background:#0b0615;border:1px solid #4b2f80;border-radius:8px;padding:3px 8px;word-break:break-all;color:#fff;font-family:ui-monospace,Consolas,monospace;font-size:18px}
+.draft{background:#3a2a05;border:2px solid #ffd24a;border-radius:12px;padding:12px 16px}
+ol,ul{padding-left:26px}li{margin:8px 0}
+label{display:block;margin:14px 0 6px;font-weight:700}
+input,textarea,select{width:100%;min-height:52px;font:inherit;padding:12px;border-radius:12px;border:2px solid #6a45b0;background:#0b0615;color:#fff}
+textarea{min-height:150px}
+footer{padding:24px 18px 40px;text-align:center;color:var(--mute);font-size:18px}
+footer a{margin:0 8px}

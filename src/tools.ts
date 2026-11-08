@@ -187,3 +187,23 @@ export async function dailyTidy(d: Drive, today: string): Promise<string> {
 }
 
 export { stampValue };
+
+// read_file: only files they picked in /pick. No name = list them.
+const READ_CAP = 20000;
+export async function readFile(d: Drive, pickUrl: string, name?: string): Promise<string> {
+	const files = await d.picked();
+	const how = `To share a file: open ${pickUrl} and pick it. Damn Homie AI can only read files picked there.`;
+	if (!files.length) return `No picked files yet. ${how}`;
+	if (!name?.trim()) return `Picked files (newest first):\n${files.map((f, i) => `${i + 1}. ${f.name}`).join("\n")}\n\n${how}`;
+	const n = name.trim().toLowerCase();
+	const low = (x: { name: string }) => x.name.toLowerCase();
+	const exact = files.find((x) => low(x) === n);
+	const starts = files.filter((x) => low(x).startsWith(n));
+	const close = exact ? [] : starts.length ? starts : files.filter((x) => low(x).includes(n));
+	if (!exact && close.length > 1) return `More than one picked file matches "${name}": ${close.map((x) => x.name).join(", ")}. Say the full name.`;
+	const f = exact || close[0];
+	if (!f) return `No picked file called "${name}". Picked: ${files.map((x) => x.name).join(", ")}. ${how}`;
+	const text = await d.readPicked(f);
+	const cut = text.length > READ_CAP;
+	return `File: ${f.name}${cut ? ` (first ${READ_CAP} characters; the file is longer)` : ""}\n\n${cut ? text.slice(0, READ_CAP) : text}`;
+}

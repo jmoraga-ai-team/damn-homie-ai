@@ -5,3 +5,4 @@ node_modules/
 test/.out.mjs
 *.log
 .reviewed-deploy.json
+.google-app-ready

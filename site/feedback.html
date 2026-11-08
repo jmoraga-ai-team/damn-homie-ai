@@ -1,0 +1,24 @@
+<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Feedback: Damn Homie AI</title><meta name="description" content="Found a bug or have an idea? Tell us."><meta name="theme-color" content="#120a1f"><link rel="icon" href="/logo.png" type="image/png"><link rel="stylesheet" href="/style.css"></head><body>
+<header><img src="/logo.svg" alt="" width="44" height="44"><b>Damn Homie AI</b></header>
+<nav aria-label="Main"><a href="/">Home</a><a href="/install">Install</a><a href="/privacy">Privacy</a><a href="/terms">Terms</a><a href="/feedback" aria-current="page">Feedback</a></nav>
+<main>
+
+<h1>🐞 Feedback</h1>
+<p>Found a bug? Got an idea? Tell us. Short is fine.</p>
+<form id="f">
+<label for="k">What is it?</label>
+<select id="k"><option>Bug</option><option>Idea</option><option>Something confusing</option><option>Love it</option></select>
+<label for="m">What happened?</label>
+<textarea id="m" placeholder="Which AI (Claude, ChatGPT, Grok)? What did you say? What did it do?"></textarea>
+<p><button class="btn" type="submit">Email it</button></p>
+</form>
+<p class="mute">This opens your email app with the message ready. Do not include passwords or keys. Or write to <a href="mailto:roomforopinions@gmail.com">roomforopinions@gmail.com</a>.</p>
+<script>
+document.getElementById('f').addEventListener('submit',function(e){e.preventDefault();
+var k=document.getElementById('k').value,m=document.getElementById('m').value;
+location.href='mailto:roomforopinions@gmail.com?subject='+encodeURIComponent('Damn Homie AI: '+k)+'&body='+encodeURIComponent(m);});
+</script>
+
+</main>
+<footer><a href="/privacy">Privacy</a><a href="/terms">Terms</a><a href="/feedback">Feedback</a><p>Made by Jarod Moraga, Maui. Not affiliated with Anthropic, OpenAI, xAI or Google.</p></footer>
+</body></html>

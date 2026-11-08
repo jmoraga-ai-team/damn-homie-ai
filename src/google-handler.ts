@@ -12,6 +12,7 @@ import {
 	validateCSRFToken,
 	validateOAuthState,
 } from "./workers-oauth-utils";
+import { driveBoxPage, pickPage } from "./pages";
 
 const app = new Hono<{ Bindings: Env & { OAUTH_PROVIDER: OAuthHelpers } }>();
 
@@ -104,6 +105,18 @@ app.post("/authorize", async (c) => {
 	}
 });
 
+app.get("/pick", (c) => pickPage(c.env.GOOGLE_CLIENT_ID, c.env.GOOGLE_PICKER_KEY));
+
+function googleUrl(request: Request, env: Env, stateToken: string) {
+	return getUpstreamAuthorizeUrl({
+		clientId: env.GOOGLE_CLIENT_ID,
+		redirectUri: new URL("/callback", request.url).href,
+		scope: GOOGLE_SCOPE,
+		state: stateToken,
+		upstreamUrl: "https://accounts.google.com/o/oauth2/v2/auth",
+	});
+}
+
 async function redirectToGoogle(
 	request: Request,
 	env: Env,
@@ -113,13 +126,7 @@ async function redirectToGoogle(
 	return new Response(null, {
 		headers: {
 			...headers,
-			location: getUpstreamAuthorizeUrl({
-				clientId: env.GOOGLE_CLIENT_ID,
-				redirectUri: new URL("/callback", request.url).href,
-				scope: GOOGLE_SCOPE,
-				state: stateToken,
-				upstreamUrl: "https://accounts.google.com/o/oauth2/v2/auth",
-			}),
+			location: googleUrl(request, env, stateToken),
 		},
 		status: 302,
 	});
@@ -174,7 +181,10 @@ app.get("/callback", async (c) => {
 		return c.text("Google sign-in did not finish. Go back to your AI and connect again.", 400);
 	}
 	if (!(t.scope || "").includes("drive.file")) {
-		return c.text("Damn Homie AI needs the Google Drive box checked to save your memory. Go back to your AI and connect again, and leave that box checked.", 400);
+		// Google shows the Drive box unchecked by default. Give them a one-tap retry, not a dead end.
+		const { stateToken } = await createOAuthState(oauthReqInfo, c.env.OAUTH_KV);
+		const { setCookie } = await bindStateToSession(stateToken);
+		return driveBoxPage(googleUrl(c.req.raw, c.env, stateToken), setCookie);
 	}
 
 	const { redirectTo } = await c.env.OAUTH_PROVIDER.completeAuthorization({
