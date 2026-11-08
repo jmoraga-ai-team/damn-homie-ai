@@ -1,0 +1,33 @@
+{
+	"name": "damn-homie-ai",
+	"version": "1.0.0",
+	"private": true,
+	"scripts": {
+		"deploy": "node scripts/deploy-live.mjs",
+		"dev": "wrangler dev",
+		"start": "wrangler dev",
+		"cf-typegen": "wrangler types",
+		"type-check": "tsc --noEmit",
+		"test": "esbuild test/test.ts --bundle --platform=node --format=esm --outfile=test/.out.mjs --log-level=warning && node test/.out.mjs",
+		"deploy:test": "wrangler deploy --env test",
+		"check:live": "node scripts/check-live.mjs"
+	},
+	"dependencies": {
+		"@cloudflare/workers-oauth-provider": "1.2.4",
+		"@modelcontextprotocol/server": "2.3.1",
+		"agents": "0.29.0",
+		"hono": "4.13.17",
+		"just-pick": "4.2.0",
+		"zod": "4.6.7"
+	},
+	"devDependencies": {
+		"typescript": "6.0.3",
+		"wrangler": "4.158.0",
+		"esbuild": "0.28.2"
+	},
+	"license": "MIT",
+	"repository": {
+		"type": "git",
+		"url": "https://github.com/jmoraga-ai-team/damn-homie-ai"
+	}
+}

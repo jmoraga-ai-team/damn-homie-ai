@@ -1,0 +1,24 @@
+// Damn Homie AI connector. Live: ai.damnhomie.com  Test copy: ai-test.damnhomie.com (env "test").
+// Deploy test:  npx wrangler deploy --env test      Live:  npx wrangler deploy
+// Roll back live: npx wrangler rollback
+{
+  "$schema": "node_modules/wrangler/config-schema.json",
+  "name": "damn-homie-ai",
+  "account_id": "b869d6c7d06678e8b4b709b5b173fe21",
+  "main": "src/index.ts",
+  "compatibility_date": "2025-03-10",
+  "compatibility_flags": ["nodejs_compat"],
+  "routes": [{ "pattern": "ai.damnhomie.com", "custom_domain": true }],
+  "vars": { "MCP_RESOURCE": "https://ai.damnhomie.com/mcp" },
+  "kv_namespaces": [{ "binding": "OAUTH_KV", "id": "e1988b6ce09048c3b05b59a889c65b3a" }],
+  "assets": { "directory": "./site" },
+  "observability": { "enabled": true },
+  "env": {
+    "test": {
+      "name": "damn-homie-ai-test",
+      "routes": [{ "pattern": "ai-test.damnhomie.com", "custom_domain": true }],
+      "vars": { "MCP_RESOURCE": "https://ai-test.damnhomie.com/mcp" },
+      "kv_namespaces": [{ "binding": "OAUTH_KV", "id": "ae002552b63b44359c8a5dcf2a3a9c84" }]
+    }
+  }
+}
