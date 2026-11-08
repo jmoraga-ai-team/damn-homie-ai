@@ -151,6 +151,10 @@ const V0_CARD = readFileSync(new URL("./v0-card.txt", import.meta.url), "utf8");
 		msg = "";
 		try { await big.readPicked({ id: "x", name: "Plan.docx", mimeType: "application/vnd.openxmlformats-officedocument.wordprocessingml.document", modifiedTime: "" }); } catch (e) { msg = String(e); }
 		ok(msg.includes("can read Docs"), "readPicked: Office files are not read as text");
+		let pulled = 0;
+		const huge = (async () => new Response(new ReadableStream({ pull(c) { pulled += 65536; pulled > 5_000_000 ? c.close() : c.enqueue(new Uint8Array(65536).fill(97)); } }))) as unknown as typeof fetch;
+		const txt = await new Drive("t", huge).readPicked({ id: "s", name: "Big sheet", mimeType: "application/vnd.google-apps.spreadsheet", modifiedTime: "" });
+		ok(txt.length === 200000 && pulled < 1_000_000, "readPicked: big export stops at 200 KB, does not download it all");
 	}
 
 	console.log(fails ? `\n${fails} FAILED` : "\nALL PASS");

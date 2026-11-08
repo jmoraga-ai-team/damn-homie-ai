@@ -15,6 +15,7 @@ export type PickedFile = { id: string; name: string; mimeType: string; modifiedT
 const EXPORT: Record<string, string> = { [DOC]: "text/plain", "application/vnd.google-apps.presentation": "text/plain", "application/vnd.google-apps.spreadsheet": "text/csv" };
 const TEXTY = /^text\/|^application\/(json|xml|csv|x-yaml|x-markdown)$/; // not Office files (their types contain "xml")
 const MAX_BYTES = 2_000_000;
+const READ_BYTES = 200_000; // read_file shows 20k characters; never pull more than this from Google
 
 export type DocInfo = { id: string; name: string; modifiedTime: string; webViewLink: string };
 
@@ -97,7 +98,22 @@ export class Drive {
 		const url = exp ? `${API}/files/${f.id}/export?mimeType=${encodeURIComponent(exp)}` : TEXTY.test(f.mimeType) ? `${API}/files/${f.id}?alt=media` : "";
 		if (!url) throw new Error(`"${f.name}" is a ${f.mimeType} file. Damn Homie AI can read Docs, Sheets, Slides and text files for now`);
 		if (!exp && Number(f.size || 0) > MAX_BYTES) throw new Error(`"${f.name}" is too big to read (over 2 MB). Copy the part you need into a Google Doc and pick that`);
-		return (await (await this.call(url)).text()).replace(/^\uFEFF/, "").replace(/\r/g, "");
+		// Read at most READ_BYTES, then stop the download, so a huge Sheet export can't fill the Worker's memory.
+		const r = await this.call(url);
+		const reader = r.body!.getReader();
+		const parts: Uint8Array[] = [];
+		let got = 0;
+		while (got < READ_BYTES) {
+			const { done, value } = await reader.read();
+			if (done) break;
+			parts.push(value);
+			got += value.length;
+		}
+		if (got >= READ_BYTES) await reader.cancel();
+		const all = new Uint8Array(got);
+		let at = 0;
+		for (const p of parts) { all.set(p, at); at += p.length; }
+		return new TextDecoder().decode(all.subarray(0, READ_BYTES)).replace(/^\uFEFF/, "").replace(/\r/g, "");
 	}
 
 	// Write the whole doc (make it if missing). Returns the doc.

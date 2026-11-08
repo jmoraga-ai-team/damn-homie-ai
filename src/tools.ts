@@ -205,5 +205,5 @@ export async function readFile(d: Drive, pickUrl: string, name?: string): Promis
 	if (!f) return `No picked file called "${name}". Picked: ${files.map((x) => x.name).join(", ")}. ${how}`;
 	const text = await d.readPicked(f);
 	const cut = text.length > READ_CAP;
-	return `File: ${f.name}${cut ? ` (first ${READ_CAP} characters of ${text.length})` : ""}\n\n${cut ? text.slice(0, READ_CAP) : text}`;
+	return `File: ${f.name}${cut ? ` (first ${READ_CAP} characters; the file is longer)` : ""}\n\n${cut ? text.slice(0, READ_CAP) : text}`;
 }
