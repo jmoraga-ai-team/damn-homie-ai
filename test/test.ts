@@ -2,6 +2,7 @@
 import { readFileSync } from "node:fs";
 import { merge, parse, print, tidy } from "../src/card";
 import { scrub } from "../src/secrets";
+import { Drive } from "../src/drive";
 import { addLine, dailyTidy, loadSavePoint, openProject, readFile, saveSavePoint, writeProject } from "../src/tools";
 
 let fails = 0;
@@ -135,6 +136,22 @@ const V0_CARD = readFileSync(new URL("./v0-card.txt", import.meta.url), "utf8");
 	ok((await readFile(pd, PICK)).includes("1. Budget 2026"), "read_file: no name -> lists picked files");
 	ok((await readFile(pd, PICK, "budget")).includes("rent,1200"), "read_file: partial name reads the file");
 	ok((await readFile(pd, PICK, "Tax return")).startsWith("No picked file"), "read_file: unpicked name -> says not picked");
+	pd.pickedFiles.push({ id: "p3", name: "Budget 2025", mimeType: "text/plain", modifiedTime: "", text: "old" });
+	ok((await readFile(pd, PICK, "budget")).startsWith("More than one picked file"), "read_file: two matches -> asks which, reads neither");
+	ok((await readFile(pd, PICK, "budget 2025")).includes("old"), "read_file: exact name wins");
+	{
+		const calls: string[] = [];
+		const fake = (async (u: string) => { calls.push(u); return new Response(JSON.stringify({ files: u.includes("name%3D'Damn") ? [{ id: "F1" }, { id: "F2" }] : [] })); }) as unknown as typeof fetch;
+		await new Drive("t", fake).picked();
+		ok(calls.length === 2 && calls[1].includes(encodeURIComponent("not 'F1' in parents")) && calls[1].includes(encodeURIComponent("not 'F2' in parents")), "picked(): skips every Damn Homie folder");
+		const big = new Drive("t", fake);
+		let msg = "";
+		try { await big.readPicked({ id: "x", name: "Huge.txt", mimeType: "text/plain", modifiedTime: "", size: "5000000" }); } catch (e) { msg = String(e); }
+		ok(msg.includes("too big"), "readPicked: over 2 MB refused");
+		msg = "";
+		try { await big.readPicked({ id: "x", name: "Plan.docx", mimeType: "application/vnd.openxmlformats-officedocument.wordprocessingml.document", modifiedTime: "" }); } catch (e) { msg = String(e); }
+		ok(msg.includes("can read Docs"), "readPicked: Office files are not read as text");
+	}
 
 	console.log(fails ? `\n${fails} FAILED` : "\nALL PASS");
 	process.exit(fails ? 1 : 0);

@@ -11,9 +11,10 @@ import { scrub } from "./secrets";
 
 export class SignInError extends Error {}
 
-export type PickedFile = { id: string; name: string; mimeType: string; modifiedTime: string };
+export type PickedFile = { id: string; name: string; mimeType: string; modifiedTime: string; size?: string };
 const EXPORT: Record<string, string> = { [DOC]: "text/plain", "application/vnd.google-apps.presentation": "text/plain", "application/vnd.google-apps.spreadsheet": "text/csv" };
-const TEXTY = /^text\/|json|csv|markdown|xml/;
+const TEXTY = /^text\/|^application\/(json|xml|csv|x-yaml|x-markdown)$/; // not Office files (their types contain "xml")
+const MAX_BYTES = 2_000_000;
 
 export type DocInfo = { id: string; name: string; modifiedTime: string; webViewLink: string };
 
@@ -82,9 +83,11 @@ export class Drive {
 
 	// Files they picked in /pick (outside our folder). drive.file: Google only ever shows us those.
 	async picked(): Promise<PickedFile[]> {
-		const folder = await this.findFolder();
-		const q = `trashed=false and mimeType!='${FOLDER}'` + (folder ? ` and not '${folder}' in parents` : "");
-		const r = await this.call(`${API}/files?q=${encodeURIComponent(q)}&fields=files(id,name,mimeType,modifiedTime)&orderBy=modifiedTime desc&pageSize=50`);
+		// Skip every "Damn Homie" folder (there can be more than one), so our own memory docs never show up as picked.
+		const fq = `name='${FOLDER_NAME}' and mimeType='${FOLDER}' and trashed=false`;
+		const folders = ((await (await this.call(`${API}/files?q=${encodeURIComponent(fq)}&fields=files(id)`)).json()) as any).files as { id: string }[];
+		const q = `trashed=false and mimeType!='${FOLDER}'` + folders.map((f) => ` and not '${f.id}' in parents`).join("");
+		const r = await this.call(`${API}/files?q=${encodeURIComponent(q)}&fields=files(id,name,mimeType,modifiedTime,size)&orderBy=modifiedTime desc&pageSize=100`);
 		return ((await r.json()) as any).files;
 	}
 
@@ -93,6 +96,7 @@ export class Drive {
 		const exp = EXPORT[f.mimeType];
 		const url = exp ? `${API}/files/${f.id}/export?mimeType=${encodeURIComponent(exp)}` : TEXTY.test(f.mimeType) ? `${API}/files/${f.id}?alt=media` : "";
 		if (!url) throw new Error(`"${f.name}" is a ${f.mimeType} file. Damn Homie AI can read Docs, Sheets, Slides and text files for now`);
+		if (!exp && Number(f.size || 0) > MAX_BYTES) throw new Error(`"${f.name}" is too big to read (over 2 MB). Copy the part you need into a Google Doc and pick that`);
 		return (await (await this.call(url)).text()).replace(/^\uFEFF/, "").replace(/\r/g, "");
 	}
 

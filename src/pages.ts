@@ -50,7 +50,7 @@ if(location.hash)history.replaceState(null,'',location.pathname);
 const want=sessionStorage.getItem('dhPick');sessionStorage.removeItem('dhPick');
 document.getElementById('go').onclick=()=>{
   const s=crypto.randomUUID();sessionStorage.setItem('dhPick',s);
-  location.href='https://accounts.google.com/o/oauth2/v2/auth?'+new URLSearchParams({client_id:C.c,redirect_uri:location.origin+'/pick',response_type:'token',scope:'https://www.googleapis.com/auth/drive.file',include_granted_scopes:'true',prompt:'select_account',state:s});
+  location.href='https://accounts.google.com/o/oauth2/v2/auth?'+new URLSearchParams({client_id:C.c,redirect_uri:location.origin+'/pick',response_type:'token',scope:'https://www.googleapis.com/auth/drive.file',prompt:'select_account',state:s});
 };
 const pick=(t)=>{
   if(!window.gapi){setTimeout(()=>pick(t),300);return;}

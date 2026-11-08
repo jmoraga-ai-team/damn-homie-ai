@@ -196,7 +196,12 @@ export async function readFile(d: Drive, pickUrl: string, name?: string): Promis
 	if (!files.length) return `No picked files yet. ${how}`;
 	if (!name?.trim()) return `Picked files (newest first):\n${files.map((f, i) => `${i + 1}. ${f.name}`).join("\n")}\n\n${how}`;
 	const n = name.trim().toLowerCase();
-	const f = files.find((x) => x.name.toLowerCase() === n) || files.find((x) => x.name.toLowerCase().includes(n));
+	const low = (x: { name: string }) => x.name.toLowerCase();
+	const exact = files.find((x) => low(x) === n);
+	const starts = files.filter((x) => low(x).startsWith(n));
+	const close = exact ? [] : starts.length ? starts : files.filter((x) => low(x).includes(n));
+	if (!exact && close.length > 1) return `More than one picked file matches "${name}": ${close.map((x) => x.name).join(", ")}. Say the full name.`;
+	const f = exact || close[0];
 	if (!f) return `No picked file called "${name}". Picked: ${files.map((x) => x.name).join(", ")}. ${how}`;
 	const text = await d.readPicked(f);
 	const cut = text.length > READ_CAP;
