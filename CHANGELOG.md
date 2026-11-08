@@ -4,7 +4,7 @@ Every live version gets one line here. It matches `VERSION` and `WHATS_NEW` in `
 
 ## 1.0.2 (2026-11-07)
 
-You can now pick Google Drive files for me to read (new read_file tool and /pick page; it sees only files you pick). Fixed: every Drive call failed on the real server ("Illegal invocation"). Fixed: leaving Google's Drive box unchecked now shows a Try again button instead of a dead end.
+You can now pick Google Drive files for me to read (new read_file tool and /pick page; it sees only files you pick, and Google opens in the same tab, no popup). Fixed: every Drive call failed on the real server ("Illegal invocation"). Fixed: leaving Google's Drive box unchecked now shows a Try again button instead of a dead end, and the install steps say to check that box.
 
 ## 1.0.1 (2026-11-07)
 
