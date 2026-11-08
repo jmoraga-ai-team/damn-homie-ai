@@ -79,11 +79,11 @@ page("install.html", "/install", "Install Damn Homie AI", "Add Damn Homie AI to 
 <p>Pick your AI. Setup is free. You sign in with Google once, and it can only see the files it makes.</p>
 <div class="card"><h3>The link you paste</h3><p><code>https://ai.damnhomie.com/mcp</code></p><p class="mute">Name it <b>Damn Homie AI</b>.</p></div>
 <h2>Claude</h2>
-<ol><li>Open <b>Settings</b>, then <b>Connectors</b>.</li><li>Tap <b>Add custom connector</b>.</li><li>Name: <b>Damn Homie AI</b>. URL: the link above. Tap <b>Add</b>.</li><li>Tap <b>Connect</b> and sign in with Google. <b>Check the Google Drive box</b> (Google leaves it unchecked), then tap <b>Continue</b>.</li><li>Start a chat and say: <b>Load my Save Point.</b></li></ol>
+<ol><li>Open <b>Customize</b>, then <b>Connectors</b>.</li><li>Tap <b>+ Add</b>, then <b>Add custom connector</b>.</li><li>Name: <b>Damn Homie AI</b>. URL: the link above. Tap <b>Continue</b>, then <b>Add</b>.</li><li>Tap <b>Connect</b>, then <b>Approve</b>, and sign in with Google. <b>Check the Google Drive box</b> (Google leaves it unchecked), then tap <b>Continue</b>.</li><li>Start a chat and say: <b>Load my Save Point.</b></li></ol>
 <h2>ChatGPT</h2>
 <ol><li>Open <b>Settings</b>, then <b>Connectors</b>, then <b>Advanced</b>. Turn on <b>Developer mode</b>.</li><li>Tap <b>Create</b>. Name: <b>Damn Homie AI</b>. URL: the link above. Authentication: <b>OAuth</b>.</li><li>Sign in with Google. <b>Check the Google Drive box</b> (Google leaves it unchecked), then tap <b>Continue</b>.</li><li>In a new chat, add the connector and say: <b>Load my Save Point.</b></li></ol>
 <h2>Grok</h2>
-<ol><li>Go to <a href="https://grok.com/connectors">grok.com/connectors</a>.</li><li>Tap <b>New Connector</b>, then <b>Custom</b>.</li><li>Name: <b>Damn Homie AI</b>. Paste the link above.</li><li>Sign in with Google. <b>Check the Google Drive box</b> (Google leaves it unchecked), then tap <b>Continue</b>.</li><li>Start a chat and say: <b>Load my Save Point.</b></li></ol>
+<ol><li>Go to <a href="https://grok.com/connectors">grok.com/connectors</a>. It opens <b>Connect Apps</b>.</li><li>Scroll to the bottom and tap <b>Add a custom connector</b>.</li><li>Name: <b>Damn Homie AI</b>. Server URL: the link above. Tap <b>Add MCP</b>.</li><li>In the pop-up, tap <b>Approve</b> and sign in with Google. <b>Check the Google Drive box</b> (Google leaves it unchecked), then tap <b>Continue</b>.</li><li>Start a chat and say: <b>Load my Save Point.</b></li></ol>
 <p class="mute">Menu names change as the apps update. If a button has moved, look for "connectors", "custom" or "MCP".</p>
 <h2>No connector? Use the starter kit</h2>
 <p>This is the first version. No sign-in: the AI keeps your Save Point where it can, or you paste it back yourself.</p>
