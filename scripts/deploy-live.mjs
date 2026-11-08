@@ -6,7 +6,9 @@ import { sh, bin, live, writeReviewed } from "./lib.mjs";
 const stop = (why) => { console.error("NOT DEPLOYED: " + why); process.exit(1); };
 
 if (sh("git", ["rev-parse", "--abbrev-ref", "HEAD"]) !== "main") stop("not on main.");
-if (sh("git", ["status", "--porcelain"])) stop("uncommitted changes.");
+// Changed tracked files, or new files in what ships (src/ code, site/ pages), block the deploy. Other untracked files (notes, markers) do not.
+const dirty = sh("git", ["status", "--porcelain", "--untracked-files=all"]).split("\n").filter((l) => l && (!l.startsWith("??") || /^\?\? (src|site)\//.test(l)));
+if (dirty.length) stop("uncommitted changes:\n" + dirty.join("\n"));
 sh("git", ["fetch", "origin", "main"]);
 const head = sh("git", ["rev-parse", "HEAD"]);
 if (head !== sh("git", ["rev-parse", "origin/main"])) stop("this commit is not origin/main. Merge through a pull request first.");
