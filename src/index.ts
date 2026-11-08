@@ -6,7 +6,7 @@ import { z } from "zod";
 import { SERVER_INSTRUCTIONS, VERSION } from "./brain";
 import { Drive, SignInError } from "./drive";
 import { GoogleHandler } from "./google-handler";
-import { addLine, dailyTidy, loadSavePoint, openProject, saveSavePoint, writeProject } from "./tools";
+import { addLine, dailyTidy, loadSavePoint, openProject, readFile, saveSavePoint, writeProject } from "./tools";
 import { refreshGoogle, type Props } from "./utils";
 
 const WHEN = z.string().describe('Their local date and time now, like "2026-11-07 1:05 PM"');
@@ -118,6 +118,17 @@ function createServer() {
 			annotations: { readOnlyHint: false, destructiveHint: false, openWorldHint: false },
 		},
 		({ today }) => run((d) => dailyTidy(d, today)),
+	);
+
+	server.registerTool(
+		"read_file",
+		{
+			title: "Read picked file",
+			description: "Reads a Google Drive file the person picked at the /pick page (Docs, Sheets, Slides, text). Leave name out to list picked files. Cannot see anything they did not pick.",
+			inputSchema: z.object({ name: z.string().optional().describe("File name, or part of it") }),
+			annotations: { readOnlyHint: true, destructiveHint: false, openWorldHint: false },
+		},
+		({ name }) => run((d) => readFile(d, env.MCP_RESOURCE.replace(/\/mcp$/, "/pick"), name)),
 	);
 
 	return server;

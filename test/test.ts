@@ -2,7 +2,7 @@
 import { readFileSync } from "node:fs";
 import { merge, parse, print, tidy } from "../src/card";
 import { scrub } from "../src/secrets";
-import { addLine, dailyTidy, loadSavePoint, openProject, saveSavePoint, writeProject } from "../src/tools";
+import { addLine, dailyTidy, loadSavePoint, openProject, readFile, saveSavePoint, writeProject } from "../src/tools";
 
 let fails = 0;
 const ok = (cond: any, name: string) => {
@@ -22,6 +22,9 @@ class FakeDrive {
 	async find(name: string) { return this.files.get(name) || null; }
 	async read(id: string) { return [...this.files.values()].find((f) => f.id === id)!.text; }
 	async readByName(name: string) { const f = this.files.get(name); return f ? { doc: f, text: f.text } : null; }
+	pickedFiles: { id: string; name: string; mimeType: string; modifiedTime: string; text: string }[] = [];
+	async picked() { return this.pickedFiles; }
+	async readPicked(f: { id: string }) { return this.pickedFiles.find((x) => x.id === f.id)!.text; }
 	async write(name: string, text: string) {
 		await this.ensureFolder();
 		const old = this.files.get(name);
@@ -120,6 +123,18 @@ const V0_CARD = readFileSync(new URL("./v0-card.txt", import.meta.url), "utf8");
 	ok(!all.includes(fakeKey) && !all.includes("4111 1111") && !all.includes("hunter22"), "secret guard: key, card and password never written to Drive");
 	ok(r.scrubbed === 3 && !r.text.includes(fakeKey), "secret guard: counted (" + r.scrubbed + ") and gone from the returned card");
 	ok(scrub("call me at 808-555-1234, order 12345").hits === 0, "secret guard: phone and order numbers left alone");
+
+	// 9. read_file: only picked files.
+	const pd: any = new FakeDrive();
+	const PICK = "https://ai.damnhomie.com/pick";
+	ok((await readFile(pd, PICK)).includes(PICK), "read_file: no picked files -> points to the pick page");
+	pd.pickedFiles = [
+		{ id: "p1", name: "Budget 2026", mimeType: "application/vnd.google-apps.spreadsheet", modifiedTime: "", text: "rent,1200" },
+		{ id: "p2", name: "Notes.txt", mimeType: "text/plain", modifiedTime: "", text: "hello" },
+	];
+	ok((await readFile(pd, PICK)).includes("1. Budget 2026"), "read_file: no name -> lists picked files");
+	ok((await readFile(pd, PICK, "budget")).includes("rent,1200"), "read_file: partial name reads the file");
+	ok((await readFile(pd, PICK, "Tax return")).startsWith("No picked file"), "read_file: unpicked name -> says not picked");
 
 	console.log(fails ? `\n${fails} FAILED` : "\nALL PASS");
 	process.exit(fails ? 1 : 0);
