@@ -19,14 +19,3 @@ AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
 LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
-
----
-
-Credits
-
-The answer style ("HOW EVERY ANSWER LOOKS" in src/brain.ts) comes from the
-open-source i-have-adhd skill by Ayoub Ghriss (https://github.com/ayghri/i-have-adhd),
-MIT License. Thank you.
-
-The sign-in plumbing started from Cloudflare's remote MCP server + Google OAuth
-demo (https://github.com/cloudflare/ai, demos/remote-mcp-google-oauth).

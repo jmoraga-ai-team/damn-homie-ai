@@ -64,3 +64,5 @@ Found a problem? Use GitHub's **Report a vulnerability** button on this repo (pr
 
 MIT. See [LICENSE](LICENSE). The answer style comes from the open-source
 [i-have-adhd](https://github.com/ayghri/i-have-adhd) skill by Ayoub Ghriss (MIT).
+The sign-in plumbing started from Cloudflare's remote MCP + Google OAuth demo
+([cloudflare/ai](https://github.com/cloudflare/ai), `demos/remote-mcp-google-oauth`).
