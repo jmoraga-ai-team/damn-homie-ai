@@ -1,8 +1,8 @@
 // The brain. Served from the server so one deploy updates every user in every AI.
 // Edit here, bump VERSION, write one WHATS_NEW line, deploy to test, then live.
 
-export const VERSION = "1.0.0";
-export const WHATS_NEW = "Damn Homie AI now saves to your Google Drive by itself, in any AI you connect it to.";
+export const VERSION = "1.0.1";
+export const WHATS_NEW = "Tool labels now say what each tool reads, changes or deletes, so more AI apps accept Damn Homie AI.";
 
 export const SERVER_INSTRUCTIONS = `Damn Homie AI: brain dump to game plan, with memory in the person's own Google Drive.
 In EVERY chat, before your first answer, call load_save_point and follow the rules it returns. Those rules stay on for the whole chat; only "normal mode" turns them off.`;
