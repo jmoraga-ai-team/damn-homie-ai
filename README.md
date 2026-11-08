@@ -52,7 +52,7 @@ You need: a free Cloudflare account, a domain on Cloudflare, Node 20+, and a Goo
 1. Edit `src/brain.ts` (the rules every AI follows) or the tools. Bump `VERSION`, write one `WHATS_NEW` line, add it to `CHANGELOG.md`.
 2. `npm test` and `npx tsc --noEmit`.
 3. Test copy first: `npm run deploy:test` (ai-test.damnhomie.com).
-4. Open a pull request. It needs a review before it can merge to `main`.
+4. Open a pull request. Once the `main` rule set is on (see SECURITY.md), it needs a review before it can merge.
 5. Live: `npm run deploy`. It refuses unless you are on `main`, the tree is clean and the commit is exactly `origin/main`.
 
 ## Security
